@@ -97,8 +97,8 @@ data CoList a = Nil | Snoc (CoList a) a
 
 {-7.1 Реализовать функцию, которая по ко-списку возвращает список -}
 
-listToCoList :: CoList a -> [a]
-listToCoList = undefined
+coListToList :: CoList a -> [a]
+coListToList = undefined
 
 {-7.2 Реализовать конкатенацию ко-списков.
 Реализация функции должна удовлетворять следующему равенству:
@@ -128,8 +128,8 @@ treeToList = undefined
 
 -- # 8.3 Аналогично для ко-списков
 
-listToTree :: Tree a -> CoList a
-listToTree = undefined
+treeToCoList :: Tree a -> CoList a
+treeToCoList = undefined
 
 {- # 8.4 Реализовать проверку на пустоту -}
 
