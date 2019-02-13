@@ -1,5 +1,7 @@
 module HW01 where
 
+import Data.List (genericLength)
+
 {-
 1. Задача на лямбда-исчисление
 
@@ -17,7 +19,8 @@ module HW01 where
 -}
 
 euclid :: Integer -> Integer -> Integer
-euclid = undefined
+euclid x 0 = x
+euclid x y = euclid y (x `mod` y)
 
 {-
 3. Реализуйте функцию Эйлера:
@@ -26,15 +29,19 @@ https://en.wikipedia.org/wiki/Euler%27s_totient_function
 
 
 eulerTotient :: Integer -> Integer
-eulerTotient = undefined
+eulerTotient a =
+    genericLength . (filter $ coPrime a) $ [1..a - 1]
+    where
+        coPrime a b = (a `euclid` b) == 1
 
 
 {-
 4. Не пользуясь стандартными функциями, реализуйте возведение в степень:
 -}
 
-exp :: Integer -> Integer -> Integer
-exp = undefined
+expon :: Integer -> Integer -> Integer
+expon a 0 = 1
+expon a b = a * (expon a (b - 1))
 
 {-
 5. Функция integrate принимает одноместную функцию f :: Double -> Double, два вещественных числа a, b :: Double
@@ -46,7 +53,14 @@ integrate
     -> Double
     -> Double
     -> Double
-integrate = undefined
+integrate f a b =
+    height * singleStep ((f a + f b) / 2) (a + height) 1
+    where
+        height = (b - a) / seg
+        seg = 1000
+        singleStep acc x i
+            | i == seg     = height * acc
+            | otherwise    = singleStep (acc + (f x)) (x + height) (i + 1)
 
 
 {- 6. Заселить следующие типы термами: -}
@@ -54,17 +68,17 @@ integrate = undefined
 -- # 6.1:
 
 permute :: (a -> b -> c) -> b -> a -> c
-permute = undefined
+permute f x y = f y x
 
 -- # 6.2:
 
 pairProd :: (a -> b) -> (c -> d) -> (a,c) -> (b,d)
-pairProd = undefined
+pairProd f g (a, c) = (f a, g c)
 
 -- # 6.3:
 
 fix :: (a -> a) -> a
-fix = undefined
+fix f = f (fix f)
 -- подсказка к # 6.3: вспомнить про комбинатор неподвижной точки, о котором говорилось на второй лекции:
 
 -- # 6.4
@@ -74,7 +88,8 @@ weirdFunction
     -> (a -> b -> c)
     -> (d -> b)
     -> d -> b
-weirdFunction = undefined
+weirdFunction f _ g x = g x
+-- второй вариант: weirdFunction f _ g x = f x x
 
 
 {-
@@ -88,7 +103,8 @@ data CoList a = Nil | Snoc (CoList a) a
 {-7.1 Реализовать функцию, которая по ко-списку возвращает список -}
 
 listToCoList :: CoList a -> [a]
-listToCoList = undefined
+listToCoList Nil = []
+listToCoList (Snoc xs x) = listToCoList xs ++ [x]
 
 {-7.2 Реализовать конкатенацию ко-списков.
 Реализация функции должна удовлетворять следующему равенству:
@@ -97,7 +113,8 @@ listToCoList (coListConcat a b) = (listToColist a) ++ (listToColist b),
  -}
 
 coListConcat :: CoList a -> CoList a -> CoList a
-coListConcat = undefined
+coListConcat Nil ys = Nil
+coListConcat (Snoc xs x) ys = Snoc (coListConcat xs ys) x
 
 {-
 8. Определим тип деревьев с двоичным ветвлением
@@ -109,22 +126,32 @@ data Tree a = Leaf | Node (Tree a) a (Tree a)
 -- # 8.1 Реализовать instance класса типов Functor для деревьев
 
 instance Functor Tree where
-    fmap = undefined
+ -- fmap :: (a -> b) -> Tree a -> Tree b
+    fmap f Leaf = Leaf
+    fmap f (Node left node right) =
+        Node (fmap f left) (f node) (fmap f right)
 
 -- # 8.2. Реализовать функцию, которая возвращает список элементов дерева
 
 treeToList :: Tree a -> [a]
-treeToList = undefined
+treeToList Leaf = []
+treeToList (Node left node right) =
+    (treeToList left) ++ [node] ++ (treeToList right)
 
 -- # 8.3 Аналогично для ко-списков
 
 listToTree :: Tree a -> CoList a
-listToTree = undefined
+listToTree Leaf = Nil
+listToTree (Node left node right) =
+    listToTree left `coListConcat`
+    Snoc Nil node `coListConcat`
+    listToTree right
 
 {- # 8.4 Реализовать проверку на пустоту -}
 
 isEmpty :: Tree a -> Bool
-isEmpty = undefined
+isEmpty Leaf = True
+isEmpty _ = False
 
 {- # 9. В стандартной библиотеке языка Haskell определен двухпараметрический тип Either,
 data Either a b = Left a | Right b, семантика которого похожа на семантику Maybe, который обсуждался на семинаре.
@@ -147,12 +174,15 @@ Right 0.8333333333333334
 -- # 9.1 Заселить данный тип
 
 eitherCommute :: Either a b -> Either b a
-eitherCommute = undefined
+eitherCommute (Left a)  = Right a
+eitherCommute (Right b) = Left b
 
 -- # 9.2 Аналогично
 
 eitherAssoc :: Either a (Either b c) -> Either (Either a b) c
-eitherAssoc = undefined
+eitherAssoc (Left a)          = Left (Left a)
+eitherAssoc (Right (Left b))  = Left (Right b)
+eitherAssoc (Right (Right c)) = Right c
 
 {- 10. В Haskell определена также конструкция case of, которая позволяет делать паттерн-матчинг
 внутри реализации функции.
@@ -175,24 +205,29 @@ booleanImplication x y = case (not x || y) of
 -- # 10.1
 
 listSum :: Num a => [a] -> a
-listSum [] = 0
-listSum (x:xs) = x + listSum xs
+listSum xs = case xs of
+    []       -> 0
+    (x : xs) -> 1 + listSum xs
 
 -- # 10.2
 
 filterList :: (a -> Bool) -> [a] -> [a]
-filterList predicate [] = []
-filterList predicate (x:xs) =
-    if predicate x then (x : filterList predicate xs) else filterList predicate xs
+filterList predicate xs = case xs of
+    [] -> []
+    (x : xs) -> case predicate x of
+        True  -> x : filterList predicate xs
+        False -> filterList predicate xs
 
 -- # 10.3
 
 safeHead :: [a] -> Maybe a
-safeHead [] = Nothing
-safeHead (x:xs) = Just x
+safeHead xs = case xs of
+    []       -> Nothing
+    (x : xs) -> Just x
 
 -- # 10.4
 
 distributivity :: (a, Either b c) -> Either (a, b) (a, c)
-distributivity (x, Left y) = Left (x, y)
-distributivity (x, Right y) = Right (x, y)
+distributivity (x, y) = case y of
+    Left b  -> Left (x, b)
+    Right c -> Right (x, c)
