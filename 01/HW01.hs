@@ -123,8 +123,9 @@ listToCoList (coListConcat a b) = (listToColist a) ++ (listToColist b),
  -}
 
 coListConcat :: CoList a -> CoList a -> CoList a
-coListConcat Nil ys = ys
-coListConcat (Snoc xs x) ys = Snoc (coListConcat xs ys) x
+coListConcat Nil ys = Nil
+coListConcat ys Nil = ys
+coListConcat xs (Snoc ys y) = Snoc (coListConcat xs ys) y
 
 {-
 8. Определим тип деревьев с двоичным ветвлением
