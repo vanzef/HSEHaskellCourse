@@ -123,7 +123,7 @@ listToCoList (coListConcat a b) = (listToColist a) ++ (listToColist b),
  -}
 
 coListConcat :: CoList a -> CoList a -> CoList a
-coListConcat Nil ys = Nil
+coListConcat Nil ys = ys
 coListConcat (Snoc xs x) ys = Snoc (coListConcat xs ys) x
 
 {-
