@@ -15,6 +15,16 @@ import Data.List (genericLength)
 -}
 
 {-
+Правило редукции:
+(λ x. M) N -> M [x := N]
+
+Правила избавления от скобок:
+1. M N P = (M N) P
+2. λ x. λ y. M = λ x. (λ y. M)
+3. λ x y. M = λ x. λ y. M
+-}
+
+{-
 2. Реализовать алгоритм Евклида:
 -}
 
@@ -102,9 +112,9 @@ data CoList a = Nil | Snoc (CoList a) a
 
 {-7.1 Реализовать функцию, которая по ко-списку возвращает список -}
 
-listToCoList :: CoList a -> [a]
-listToCoList Nil = []
-listToCoList (Snoc xs x) = listToCoList xs ++ [x]
+coListToList :: CoList a -> [a]
+coListToList Nil = []
+coListToList (Snoc xs x) = coListToList xs ++ [x]
 
 {-7.2 Реализовать конкатенацию ко-списков.
 Реализация функции должна удовлетворять следующему равенству:
@@ -140,12 +150,12 @@ treeToList (Node left node right) =
 
 -- # 8.3 Аналогично для ко-списков
 
-listToTree :: Tree a -> CoList a
-listToTree Leaf = Nil
-listToTree (Node left node right) =
-    listToTree left `coListConcat`
+treeToCoList :: Tree a -> CoList a
+treeToCoList Leaf = Nil
+treeToCoList (Node left node right) =
+    treeToCoList left `coListConcat`
     Snoc Nil node `coListConcat`
-    listToTree right
+    treeToCoList right
 
 {- # 8.4 Реализовать проверку на пустоту -}
 
