@@ -217,7 +217,7 @@ booleanImplication x y = case (not x || y) of
 listSum :: Num a => [a] -> a
 listSum xs = case xs of
     []       -> 0
-    (x : xs) -> 1 + listSum xs
+    (x : xs) -> x + listSum xs
 
 -- # 10.2
 
