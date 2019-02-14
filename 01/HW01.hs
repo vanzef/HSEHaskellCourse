@@ -39,6 +39,7 @@ https://en.wikipedia.org/wiki/Euler%27s_totient_function
 
 
 eulerTotient :: Integer -> Integer
+eulerTotient 1 = 1
 eulerTotient a =
     genericLength . (filter $ coPrime a) $ [1..a - 1]
     where
