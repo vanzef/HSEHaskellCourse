@@ -125,7 +125,7 @@ instance Semigroup (Endo a) where
 instance Monoid (Endo a) where
   mempty = undefined
 
--- # 1.7. Проверить аксиомы моноида для типа (Endo a).
+-- # 1.7. Проверить аксиомы полугруппы и моноида для типа (Endo a).
 
 -- # 2.
 
@@ -442,6 +442,11 @@ newtype Predicate a
 instance Contravariant Predicate where
   contramap = undefined
 
+predicateTest =
+  and [ (getPredicate $ contramap toLower (Predicate isSymbol)) '$' == True
+      , (getPredicate $ contramap (`div` 49) (Predicate even)) 95 == False
+      ]
+
 -- # 7.2.
 
 newtype Const a b
@@ -458,6 +463,17 @@ newtype Compare a
 instance Contravariant Compare where
   contramap = undefined
 
+compareTest =
+  and
+    [ (getComparison $ contramap length (Comparison compare)) letters numbers == GT
+    , (getComparison $ contramap mconcat (Comparison compare)) listString1 listString2 == GT
+    ]
+  where
+    letters = ['a'..'z']
+    numbers = [1..10]
+    listString1 = ["harold", " hide "]
+    listString2 = [" the ", "pain"]
+
 main :: IO ()
 main = do
   fourResult <- testM
@@ -467,6 +483,8 @@ main = do
                 , fourResult
                 , testMonoidal
                 , listFunctionTest
+                , predicateTest
+                , compareTest
                 ]
   case hwTest of
     True  -> putStrLn "Success! Good job!"
