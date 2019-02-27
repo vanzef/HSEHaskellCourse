@@ -1,7 +1,7 @@
 module HW02 where
 
 import Control.Applicative (liftA2)
-
+import Data.Char (toLower, isSymbol)
 -- # 1 Инстансы полугрупп и моноидов
 
 -- # 1.1  Показать, что тип ValueOpEx v является полугруппой
@@ -344,7 +344,7 @@ class MonadTrans n where
 newtype MaybeT m a
   = MaybeT { runMaybeT :: m (Maybe a) }
 
-instance MonadTrans (MaybeT m) where
+instance MonadTrans MaybeT where
   lift = undefined
 
 -- # 5.2. ContT
@@ -352,12 +352,12 @@ instance MonadTrans (MaybeT m) where
 newtype ContT r m a
   = ContT { runContT :: (a -> m r) -> m r }
 
-instance Monad m => MonadTrans (ContT r m) where
+instance MonadTrans (ContT r) where
   lift = undefined
 
 -- # 5.3. ListT
 
-instance MonadTrans (ListT m) where
+instance MonadTrans ListT where
   lift = undefined
 
 -- # 6 Рассахарить do-нотацию
@@ -443,8 +443,8 @@ instance Contravariant Predicate where
   contramap = undefined
 
 predicateTest =
-  and [ (getPredicate $ contramap toLower (Predicate isSymbol)) '$' == True
-      , (getPredicate $ contramap (`div` 49) (Predicate even)) 95 == False
+  and [ (runPredicate $ contramap toLower (Predicate isSymbol)) '$' == True
+      , (runPredicate $ contramap (`div` 49) (Predicate even)) 95 == False
       ]
 
 -- # 7.2.
@@ -465,12 +465,12 @@ instance Contravariant Compare where
 
 compareTest =
   and
-    [ (getComparison $ contramap length (Comparison compare)) letters numbers == GT
-    , (getComparison $ contramap mconcat (Comparison compare)) listString1 listString2 == GT
+    [ (runCompare $ contramap length (Compare compare)) numbers1 numbers2 == GT
+    , (runCompare $ contramap mconcat (Compare compare)) listString1 listString2 == GT
     ]
   where
-    letters = ['a'..'z']
-    numbers = [1..10]
+    numbers1 = [1..10] :: [Int]
+    numbers2 = [11..29]
     listString1 = ["harold", " hide "]
     listString2 = [" the ", "pain"]
 
