@@ -332,7 +332,7 @@ monadInMonad trans mor xsT =
 -- и задается классом MonadTrans:
 
 class MonadTrans n where
-  lift :: Monad m => m a -> n (m a)
+  lift :: Monad m => m a -> n m a
 
 -- MonadTrans -- это класс с единственным методом, который берет значение в монаде m
 -- и посылает его в новую монаду n.
@@ -423,7 +423,7 @@ listFunctionTest =
       , listFunction' fs gs vals == listFunction'' fs gs vals
       ]
   where
-    fs = [ (+), (*), (-)]
+    fs = [(+), (*), (-)]
     gs = [succ, pred]
     vals = [1..100]
 
@@ -475,8 +475,8 @@ compareTest =
     listString2 = [" the ", "pain"]
 
 -- использовать функцию main для прогона тестов для ваших решений.
--- Тест устроен просто: все ваши функции проходят все тесты, то main вернет поздравление.
--- В противном случае, попросит перепроверить решения.
+-- Тест устроен просто: елси тесты пройдены, то main вернет поздравление.
+-- В противном случае, main попросит перепроверить решения.
 
 main :: IO ()
 main = do
@@ -493,3 +493,4 @@ main = do
   case hwTest of
     True  -> putStrLn "Success! Good job!"
     False -> putStrLn "Something went wrong! Check your solutions, please."
+  putStrLn ""
