@@ -85,7 +85,7 @@ instance Monoid a => Monoid (VerRes e a) where
 memptyTest :: Bool
 memptyTest = mempty <> VRes ['a'..'z'] <> VErr "some log" == VErr "some log"
 
--- # 1.3.
+-- # 1.3*.
 
 -- | доказать ассоциативность предложенной бинарной операции.
 
@@ -111,9 +111,9 @@ instance Semigroup (BlockIntegrityVerifier block) where
 instance Monoid (BlockIntegrityVerifier block) where
   mempty = undefined
 
--- # 1.5. Проверить аксиомы моноида для типа (BlockIntegrityVerifier block)
+-- # 1.5*. Проверить аксиомы моноида для типа (BlockIntegrityVerifier block)
 
--- # 1.6. еализовать инстансы моноида и полугруппы для типа Endo a,
+-- # 1.6. Реализовать инстансы моноида и полугруппы для типа Endo a,
 -- | который является оберткой над типом функции из a в a.
 
 newtype Endo a =
@@ -125,7 +125,7 @@ instance Semigroup (Endo a) where
 instance Monoid (Endo a) where
   mempty = undefined
 
--- # 1.7. Проверить аксиомы полугруппы и моноида для типа (Endo a).
+-- # 1.7*. Проверить аксиомы полугруппы и моноида для типа (Endo a).
 
 -- # 2.
 
@@ -154,7 +154,7 @@ instance Monad (MyCont r) where
   (>>=) = undefined
 
 
--- # 2.4. Доказать законы классов Applicative и Monad для MyCont r
+-- # 2.4*. Доказать законы классов Applicative и Monad для MyCont r
 
 
 -- # 3.
