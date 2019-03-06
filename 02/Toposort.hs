@@ -9,7 +9,7 @@ import qualified Data.Set as Set
 
 
 {-|
-__#9 Топологическая сортировка__
+__#10 Топологическая сортировка__
 Рассмотрим DFS алгоритм топологической сортировки:
 <https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search>.
 Заметим, что нам надо передавать неизменяемый @`Graph` a@ в качестве

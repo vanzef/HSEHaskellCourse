@@ -2,6 +2,7 @@ module HW02 where
 
 import Control.Applicative (liftA2)
 import Data.Char (toLower, isSymbol)
+
 -- # 1 Инстансы полугрупп и моноидов
 
 -- # 1.1  Показать, что тип ValueOpEx v является полугруппой
@@ -47,9 +48,13 @@ instance Semigroup (ValueOpEx v) where
   a <> b = undefined
 
 
--- # 1.1* Показать, что предложенная операция ассоциативна
+-- # 1.2* Показать, что предложенная операция ассоциативна
 
--- # 1.2.
+
+
+-- #2. Еще немного моноидов и полугрупп
+
+-- # 2.1.
 
 -- Тип данных VerRes e a, параметризованный типами e и a изоморфен типу Either.
 -- VErr хранит значение типа e, семантика -- возвращение ошибки в случае неудачного вычисления
@@ -85,13 +90,13 @@ instance Monoid a => Monoid (VerRes e a) where
 memptyTest :: Bool
 memptyTest = mempty <> VRes ['a'..'z'] <> VErr "some log" == VErr "some log"
 
--- # 1.3*.
+-- # 2.2*.
 
 -- | доказать ассоциативность предложенной бинарной операции.
 
 -- | проверить, что полученная единица действительно является единицей
 
--- # 1.4.
+-- # 2.3.
 
 -- Тип (BlockIntegrityVerifier block) -- это тип, параметризованный типом block.
 -- | Данный тип является оберткой над типом функции из абстрактного типа block в VerRes e (),
@@ -111,9 +116,9 @@ instance Semigroup (BlockIntegrityVerifier block) where
 instance Monoid (BlockIntegrityVerifier block) where
   mempty = undefined
 
--- # 1.5*. Проверить аксиомы моноида для типа (BlockIntegrityVerifier block)
+-- # 2.4*. Проверить аксиомы моноида для типа (BlockIntegrityVerifier block)
 
--- # 1.6. Реализовать инстансы моноида и полугруппы для типа Endo a,
+-- # 2.5. Реализовать инстансы моноида и полугруппы для типа Endo a,
 -- | который является оберткой над типом функции из a в a.
 
 newtype Endo a =
@@ -125,9 +130,9 @@ instance Semigroup (Endo a) where
 instance Monoid (Endo a) where
   mempty = undefined
 
--- # 1.7*. Проверить аксиомы полугруппы и моноида для типа (Endo a).
+-- # 2.6*. Проверить аксиомы полугруппы и моноида для типа (Endo a).
 
--- # 2.
+-- # 3.
 
 -- Рассмотрим тип MyCont r a, параметризованный типами r и a.
 -- Данный тип - обертка над типов функции (a -> r) -> r.
@@ -137,27 +142,27 @@ instance Monoid (Endo a) where
 newtype MyCont r a
   = MyCont { runCont :: (a -> r) -> r }
 
--- # 2.1 Реализовать инстанс функтора для типа MyCont r
+-- # 3.1 Реализовать инстанс функтора для типа MyCont r
 
 instance Functor (MyCont r) where
   fmap = undefined
 
--- # 2.2 Реализовать инстанс аппликатива для типа MyCont r
+-- # 3.2 Реализовать инстанс аппликатива для типа MyCont r
 
 instance Applicative (MyCont r) where
   pure  = undefined
   (<*>) = undefined
 
--- # 2.3 Реализовать инстанс монады для типа MyCont r
+-- # 3.3 Реализовать инстанс монады для типа MyCont r
 
 instance Monad (MyCont r) where
   (>>=) = undefined
 
 
--- # 2.4*. Доказать законы классов Applicative и Monad для MyCont r
+-- # 3.4*. Доказать законы классов Applicative и Monad для MyCont r
 
 
--- # 3.
+-- # 4.
 
 -- Рассмотрим класс типов Monoidal f, который, на самом деле, изоморфен классу Applicative:
 
@@ -180,7 +185,7 @@ instance Monoidal [] where
     y <- ys
     return (x,y)
 
--- # 3.1. Выразить методы Applicative через Monoidal
+-- # 4.1. Выразить методы Applicative через Monoidal
 
 pure'
   :: Monoidal f
@@ -195,7 +200,7 @@ pure' = undefined
   -> f b
 (<**>) = undefined
 
--- # 3.2. Выразить методы Monoidal через Applicative
+-- # 4.2. Выразить методы Monoidal через Applicative
 
 munit'
   :: Applicative f
@@ -223,7 +228,7 @@ testMonoidal =
 class Applicative m => AnotherMonad m where
   join :: m (m a) -> m a
 
--- # 3.3. Выразить AnotherMonad через Monad, иными словами,
+-- # 4.3. Выразить AnotherMonad через Monad, иными словами,
 -- | реализовать join методами класса типов Monad:
 
 join'
@@ -232,7 +237,7 @@ join'
   -> m a
 join' = undefined
 
--- # 3.4. Выразить монадический bind через AnotherMonad
+-- # 4.4. Выразить монадический bind через AnotherMonad
 
 anotherBind ::
   AnotherMonad m
@@ -241,27 +246,27 @@ anotherBind ::
   -> m b
 anotherBind = undefined
 
--- # 3.5. Реализовать альтернативную монаду списка:
+-- # 4.5. Реализовать альтернативную монаду списка:
 
 instance AnotherMonad [] where
     join = undefined
 
--- # 3.6. Реализовать альтернативую монаду Maybe:
+-- # 4.6. Реализовать альтернативую монаду Maybe:
 
 instance AnotherMonad Maybe where
     join = undefined
 
 
--- # 3.7* Предложить законы класса Monoidal и показать их эквивалентность законам
+-- # 4.7* Предложить законы класса Monoidal и показать их эквивалентность законам
 -- | класа Applicative
 
--- # 3.8* Предложить законы класса AnotherMonad и показать их эквивалентность законам
+-- # 4.8* Предложить законы класса AnotherMonad и показать их эквивалентность законам
 -- | класа Monad
 
 
--- # 4 Реализовать функции через do-нотацию
+-- # 5 Реализовать функции через do-нотацию
 
--- # 4.1
+-- # 5.1
 
 foldM
   :: Monad m
@@ -271,7 +276,7 @@ foldM
   -> m a
 foldM = undefined
 
--- # 4.2
+-- # 5.2
 
 bothM
   :: Monad m
@@ -309,7 +314,7 @@ testM = do
     fun1 = \x -> return $ x + x
     fun2 = \x -> return $ x * x
 
--- # 4.3.
+-- # 5.3.
 
 newtype ListT m a
   = ListT { runListT :: m [a] }
@@ -323,7 +328,7 @@ monadInMonad
 monadInMonad trans mor xsT =
     undefined
 
--- # 5
+-- # 6
 
 -- Рассмотрим класс MonadTrans.
 -- MonadTrans позволяет делать новую монаду из существующей монады,
@@ -339,7 +344,7 @@ class MonadTrans n where
 
 -- Реализовать инстанс MonadTrans для следующих типов
 
--- # 5.1. MaybeT
+-- # 6.1. MaybeT
 
 newtype MaybeT m a
   = MaybeT { runMaybeT :: m (Maybe a) }
@@ -347,7 +352,7 @@ newtype MaybeT m a
 instance MonadTrans MaybeT where
   lift = undefined
 
--- # 5.2. ContT
+-- # 6.2. ContT
 
 newtype ContT r m a
   = ContT { runContT :: (a -> m r) -> m r }
@@ -355,14 +360,14 @@ newtype ContT r m a
 instance MonadTrans (ContT r) where
   lift = undefined
 
--- # 5.3. ListT
+-- # 6.3. ListT
 
 instance MonadTrans ListT where
   lift = undefined
 
--- # 6 Рассахарить do-нотацию
+-- # 7 Рассахарить do-нотацию
 
--- # 6.1.
+-- # 7.1.
 
 prodM
   :: Monad m
@@ -376,7 +381,7 @@ prodM f g mac = do
   d <- g c
   return (b, d)
 
--- # 6.2.
+-- # 7.2.
 
 compose
   :: Monad m
@@ -389,7 +394,7 @@ compose fm gm xm = do
   gx <- gm x
   fm gx
 
--- # 6.3. Рассахарить list comprehension в do-нотацию
+-- # 7.3. Рассахарить list comprehension в do-нотацию
 
 listFunction
   :: [a -> b -> c]
@@ -399,7 +404,7 @@ listFunction
 listFunction fxs gxs xs =
   [ f x (g x) | f <- fxs, g <- gxs, x <- xs]
 
--- # 6.4. Рассахарить do-нотацию через методы классы типа Monad
+-- # 7.4. Рассахарить do-нотацию через методы классы типа Monad
 
 listFunction'
   :: [a -> b -> c]
@@ -408,7 +413,7 @@ listFunction'
   -> [c]
 listFunction' = undefined
 
--- # 6.5. Реализовать ту же функцию, раскрыв использованные методы класса типов Monad
+-- # 7.5. Реализовать ту же функцию, раскрыв использованные методы класса типов Monad
 -- | в соотвествии с тем, как реализован представитель класса типов Monad для списков.
 
 listFunction''
@@ -427,12 +432,12 @@ listFunctionTest =
     gs = [succ, pred]
     vals = [1..100]
 
--- # 7. Рассмотрим класс типов Contravariant, который является двойственным классу типов Functor
+-- # 8. Рассмотрим класс типов Contravariant, который является двойственным классу типов Functor
 
 class Contravariant f where
   contramap :: (a -> b) -> f b -> f a
 
--- # 7.1
+-- # 8.1
 -- Реализовать инстанс класса типов Contravariant для однопараметрического типа Predicate a, который
 -- является оберткой над одноместным предикатом, определенным на типе a
 
@@ -447,7 +452,7 @@ predicateTest =
       , (runPredicate $ contramap (`div` 49) (Predicate even)) 95 == False
       ]
 
--- # 7.2.
+-- # 8.2.
 
 newtype Const a b
   = Const { runConst :: a }
@@ -455,7 +460,7 @@ newtype Const a b
 instance Contravariant (Const a) where
   contramap = undefined
 
--- # 7.3
+-- # 8.3
 
 newtype Compare a
   = Compare { runCompare :: a -> a -> Ordering }
