@@ -470,7 +470,7 @@ instance Contravariant Compare where
 
 compareTest =
   and
-    [ (runCompare $ contramap length (Compare compare)) numbers1 numbers2 == GT
+    [ (runCompare $ contramap length (Compare compare)) numbers1 numbers2 == LT
     , (runCompare $ contramap mconcat (Compare compare)) listString1 listString2 == GT
     ]
   where
