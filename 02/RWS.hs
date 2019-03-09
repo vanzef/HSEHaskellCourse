@@ -101,11 +101,11 @@ pass = undefined
 instance Functor (Writer w) where
   fmap = undefined
 
-instance Applicative (Writer w) where
+instance Monoid w => Applicative (Writer w) where
   pure  = undefined
   (<*>) = undefined
 
-instance Monad (Writer w) where
+instance Monoid w => Monad (Writer w) where
   (>>=)  = undefined
 
 
