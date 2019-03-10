@@ -214,6 +214,7 @@ munit' = undefined
   -> f (a, b)
 (<##>) = undefined
 
+testMonoidal :: Bool
 testMonoidal =
   and [ ([succ, pred] <*> [1..10]) == [succ, pred] <**> [1..10]
       , (Just 4 <##> Just 6) == (Just 4 `appPair` Just 6)
@@ -423,6 +424,7 @@ listFunction''
   -> [c]
 listFunction'' = undefined
 
+listFunctionTest :: Bool
 listFunctionTest =
   and [ listFunction fs gs vals  == listFunction' fs gs vals
       , listFunction' fs gs vals == listFunction'' fs gs vals
@@ -447,6 +449,7 @@ newtype Predicate a
 instance Contravariant Predicate where
   contramap = undefined
 
+predicateTest :: Bool
 predicateTest =
   and [ (runPredicate $ contramap toLower (Predicate isSymbol)) '$' == True
       , (runPredicate $ contramap (`div` 49) (Predicate even)) 95 == False
@@ -468,6 +471,7 @@ newtype Compare a
 instance Contravariant Compare where
   contramap = undefined
 
+compareTest :: Bool
 compareTest =
   and
     [ (runCompare $ contramap length (Compare compare)) numbers1 numbers2 == LT
