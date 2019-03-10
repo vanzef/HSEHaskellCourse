@@ -2,8 +2,8 @@ module RWS where
 
 {-|
     __# 9 Монадический стек RWS__
-    Все подпункты оцениваются одинаково, то есть за каждую задачу вида @7.a.b@
-    даётся @n/6@ балла, где @n@ --- число баллов за всю задачу @7@.
+    Все подпункты оцениваются одинаково, то есть за каждую задачу вида @9.a.b@
+    даётся @n/6@ балла, где @n@ --- число баллов за всю задачу @9@.
 -}
 
 -- | __# 9.1 Reader__
@@ -101,11 +101,11 @@ pass = undefined
 instance Functor (Writer w) where
   fmap = undefined
 
-instance Applicative (Writer w) where
+instance Monoid w => Applicative (Writer w) where
   pure  = undefined
   (<*>) = undefined
 
-instance Monad (Writer w) where
+instance Monoid w => Monad (Writer w) where
   (>>=)  = undefined
 
 
