@@ -1,6 +1,5 @@
 module HW02 where
 
-import Data.Semigroup hiding (Sum, Endo)
 import Control.Applicative (liftA2)
 import Data.Char (toLower, isSymbol)
 
