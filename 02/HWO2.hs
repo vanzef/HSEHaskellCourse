@@ -311,7 +311,10 @@ testM = do
   result2 <- bothM fun1 fun2 (pure 1303)
   return $ result1 == Sum 55 && result2 == (2606, 1697809)
   where
+    mappendM :: Sum -> Sum -> IO Sum
     mappendM = \x y -> return $ x <> y
+
+    fun1, fun2 :: Int -> IO Int
     fun1 = \x -> return $ x + x
     fun2 = \x -> return $ x * x
 
@@ -430,8 +433,13 @@ listFunctionTest =
       , listFunction' fs gs vals == listFunction'' fs gs vals
       ]
   where
+    fs :: [Int -> Int -> Int]
     fs = [(+), (*), (-)]
+
+    gs :: [Int -> Int]
     gs = [succ, pred]
+
+    vals :: [Int]
     vals = [1..100]
 
 -- # 8. Рассмотрим класс типов Contravariant, который является двойственным классу типов Functor
