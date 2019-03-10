@@ -1,5 +1,6 @@
 module HW02 where
 
+import Data.Semigroup hiding (Sum, Endo)
 import Control.Applicative (liftA2)
 import Data.Char (toLower, isSymbol)
 
@@ -216,11 +217,13 @@ munit' = undefined
 
 testMonoidal :: Bool
 testMonoidal =
-  and [ ([succ, pred] <*> [1..10]) == [succ, pred] <**> [1..10]
-      , (Just 4 <##> Just 6) == (Just 4 `appPair` Just 6)
-      , (Just 4 `appPair` Just 6) == (Just 4 <#> Just 6)
+  and [ ([succ, pred] <*> testList) == [succ, pred] <**> testList
+      , (Just (4 :: Int) <##> Just (6 :: Int)) == (Just (4 :: Int) `appPair` Just (6 :: Int))
+      , (Just (4 :: Int) `appPair` Just (6 :: Int)) == (Just (4 :: Int) <#> Just (6 :: Int))
       ]
   where
+    testList :: [Int]
+    testList = [1..10]
     appPair = liftA2 (,)
 
 -- Если бы миром правили алгебраисты-теоретики,
@@ -460,7 +463,7 @@ instance Contravariant Predicate where
 predicateTest :: Bool
 predicateTest =
   and [ (runPredicate $ contramap toLower (Predicate isSymbol)) '$' == True
-      , (runPredicate $ contramap (`div` 49) (Predicate even)) 95 == False
+      , (runPredicate $ contramap (`div` (49 :: Int)) (Predicate even)) 95 == False
       ]
 
 -- # 8.2.
