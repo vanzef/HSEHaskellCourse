@@ -45,7 +45,29 @@ data ValueOpEx v
   | Err
 
 instance Semigroup (ValueOpEx v) where
-  a <> b = undefined
+  Err <> _ = Err
+  _ <> Err = Err
+
+  Op NotExisted <> Op (Upd _) = Err
+  Op NotExisted <> Op (New v) = Op (New v)
+  Op NotExisted <> Op Rem     = Err
+
+  Op (Upd _) <> Op NotExisted    = Err
+  Op (New _) <> Op NotExisted    = Err
+  Op Rem     <> Op NotExisted    = Op Rem
+  Op NotExisted <> Op NotExisted = Op NotExisted
+
+  Op Rem <> Op (New x) = Op $ Upd x
+  Op Rem <> Op Rem     = Err
+  Op Rem <> Op (Upd _) = Err
+
+  Op (New _) <> Op (New _) = Err
+  Op (New _) <> Op Rem     = Op NotExisted
+  Op (New _) <> Op (Upd y) = Op $ New y
+
+  Op (Upd _) <> Op (New _) = Err
+  Op (Upd _) <> Op Rem     = Op Rem
+  Op (Upd _) <> Op (Upd y) = Op $ Upd y
 
 
 -- # 1.2* Показать, что предложенная операция ассоциативна
@@ -70,7 +92,9 @@ data VerRes e a
   deriving (Show, Eq)
 
 instance Semigroup a => Semigroup (VerRes e a) where
-  a <> b = undefined
+  VRes a <> VRes b = VRes $ a <> b
+  VErr x <> _      = VErr x
+  _      <> VErr x = VErr x
 
 testVerRes :: Bool
 testVerRes = and
@@ -85,7 +109,7 @@ testVerRes = and
     verRes2 = VRes $ ['a'..'z'] ++ ['1'..'0']
 
 instance Monoid a => Monoid (VerRes e a) where
-  mempty = undefined
+  mempty = VRes mempty
 
 memptyTest :: Bool
 memptyTest = mempty <> VRes ['a'..'z'] <> VErr "some log" == VErr "some log"
@@ -111,10 +135,10 @@ newtype BlockIntegrityVerifier block
   = BIV { unBIV :: block -> VerRes String () }
 
 instance Semigroup (BlockIntegrityVerifier block) where
-  a <> b = undefined
+  BIV f <> BIV g = BIV $ \x -> f x <> g x
 
 instance Monoid (BlockIntegrityVerifier block) where
-  mempty = undefined
+  mempty = BIV $ const mempty
 
 -- # 2.4*. Проверить аксиомы моноида для типа (BlockIntegrityVerifier block)
 
@@ -125,10 +149,10 @@ newtype Endo a =
   Endo { runEndo :: a -> a }
 
 instance Semigroup (Endo a) where
-  a <> b = undefined
+  Endo f <> Endo g = Endo $ f . g
 
 instance Monoid (Endo a) where
-  mempty = undefined
+  mempty = Endo id
 
 -- # 2.6*. Проверить аксиомы полугруппы и моноида для типа (Endo a).
 
@@ -145,18 +169,26 @@ newtype MyCont r a
 -- # 3.1 Реализовать инстанс функтора для типа MyCont r
 
 instance Functor (MyCont r) where
-  fmap = undefined
+  fmap f (MyCont g) =
+    MyCont $ \h -> g $ h . f
 
 -- # 3.2 Реализовать инстанс аппликатива для типа MyCont r
 
 instance Applicative (MyCont r) where
-  pure  = undefined
-  (<*>) = undefined
+  pure x = MyCont ($ x)
+  -- (<*>) :: MyCont r (a -> b) -> MyCont r a -> MyCont r b
+  MyCont f <*> MyCont x = MyCont $
+    \f' -> f $
+    \x' -> x $ f' . x'
 
 -- # 3.3 Реализовать инстанс монады для типа MyCont r
 
 instance Monad (MyCont r) where
-  (>>=) = undefined
+  -- (>>=) :: MyCont r a -> (a -> MyCont r b) -> MyCont r b
+  MyCont h >>= f = MyCont $
+    \g -> h $ \x -> unCont x g
+    where
+       unCont y = runCont $ f y
 
 
 -- # 3.4*. Доказать законы классов Applicative и Monad для MyCont r
@@ -191,28 +223,30 @@ pure'
   :: Monoidal f
   => a
   -> f a
-pure' = undefined
+pure' x = fmap (const x) munit
 
 (<**>)
   :: Monoidal f
   => f (a -> b)
   -> f a
   -> f b
-(<**>) = undefined
+fs <**> xs = eval <$> (fs <#> xs)
+  where
+    eval p = fst p $ snd p
 
 -- # 4.2. Выразить методы Monoidal через Applicative
 
 munit'
   :: Applicative f
   => f ()
-munit' = undefined
+munit' = pure ()
 
 (<##>)
   :: Applicative f
   => f a
   -> f b
   -> f (a, b)
-(<##>) = undefined
+(<##>) = liftA2 (,)
 
 testMonoidal :: Bool
 testMonoidal =
@@ -238,7 +272,7 @@ join'
   :: Monad m
   => m (m a)
   -> m a
-join' = undefined
+join' x = x >>= id
 
 -- # 4.4. Выразить монадический bind через AnotherMonad
 
@@ -247,17 +281,19 @@ anotherBind ::
   => m a
   -> (a -> m b)
   -> m b
-anotherBind = undefined
+anotherBind x f = join $ f <$> x
 
 -- # 4.5. Реализовать альтернативную монаду списка:
 
 instance AnotherMonad [] where
-    join = undefined
+    join [] = []
+    join (x : xs) = x ++ join xs
 
 -- # 4.6. Реализовать альтернативую монаду Maybe:
 
 instance AnotherMonad Maybe where
-    join = undefined
+    join Nothing = Nothing
+    join (Just x) = x
 
 
 -- # 4.7* Предложить законы класса Monoidal и показать их эквивалентность законам
@@ -277,7 +313,12 @@ foldM
   -> a
   -> [b]
   -> m a
-foldM = undefined
+foldM f x ys = do
+  case ys of
+    [] -> pure x
+    (z:zs) -> do
+      val <- f x z
+      foldM f val zs
 
 -- # 5.2
 
@@ -287,7 +328,11 @@ bothM
   -> (a -> m c)
   -> m a
   -> m (b, c)
-bothM = undefined
+bothM f g mx = do
+  x <- mx
+  mf <- f x
+  mg <- g x
+  return (mf, mg)
 
 -- Дальше ничего интересного.
 
@@ -326,14 +371,15 @@ newtype ListT m a
   = ListT { runListT :: m [a] }
 
 monadInMonad
-  :: (Monad m, Monad n, Monoid b)
+  :: (Monad m, Monoid b)
   => (m b -> n b)
   -> (a -> b)
   -> ListT m a
   -> n b
-monadInMonad trans mor xsT =
-    undefined
-
+monadInMonad trans mor (ListT mxs) =
+  trans $ do
+    xs <- mxs
+    return $ mconcat $ mor <$> xs
 -- # 6
 
 -- Рассмотрим класс MonadTrans.
@@ -356,7 +402,13 @@ newtype MaybeT m a
   = MaybeT { runMaybeT :: m (Maybe a) }
 
 instance MonadTrans MaybeT where
-  lift = undefined
+  -- lift :: Monad m => m a -> MaybeT m a
+  lift mx = MaybeT foo
+    where
+      foo = do
+        x <- mx
+        return $ Just x
+
 
 -- # 6.2. ContT
 
@@ -364,12 +416,23 @@ newtype ContT r m a
   = ContT { runContT :: (a -> m r) -> m r }
 
 instance MonadTrans (ContT r) where
-  lift = undefined
+  -- lift :: Monad m => m a -> ContT r m a
+  lift mx = ContT foo
+    where
+      foo f = do
+        x <- mx
+        f x
+
 
 -- # 6.3. ListT
 
 instance MonadTrans ListT where
-  lift = undefined
+  -- lift :: Monad m => m a -> ListT m a
+  lift mx = ListT foo
+    where
+      foo = do
+        x <- mx
+        return [x]
 
 -- # 7 Рассахарить do-нотацию
 
@@ -395,10 +458,7 @@ compose
   -> (a -> m b)
   -> m a
   -> m c
-compose fm gm xm = do
-  x <- xm
-  gx <- gm x
-  fm gx
+compose fm gm xm = xm >>= gm >>= fm
 
 -- # 7.3. Рассахарить list comprehension в do-нотацию
 
@@ -407,8 +467,11 @@ listFunction
   -> [a -> b]
   -> [a]
   -> [c]
-listFunction fxs gxs xs =
-  [ f x (g x) | f <- fxs, g <- gxs, x <- xs]
+listFunction fxs gxs xs = do
+  f <- fxs
+  g <- gxs
+  x <- xs
+  return $ f x (g x)
 
 -- # 7.4. Рассахарить do-нотацию через методы классы типа Monad
 
@@ -417,7 +480,11 @@ listFunction'
   -> [a -> b]
   -> [a]
   -> [c]
-listFunction' = undefined
+listFunction' fxs gxs xs =
+  fxs >>= \f ->
+  gxs >>= \g ->
+  xs >>= \x ->
+  return $ f x (g x)
 
 -- # 7.5. Реализовать ту же функцию, раскрыв использованные методы класса типов Monad
 -- | в соотвествии с тем, как реализован представитель класса типов Monad для списков.
@@ -427,7 +494,11 @@ listFunction''
   -> [a -> b]
   -> [a]
   -> [c]
-listFunction'' = undefined
+listFunction'' fxs gxs xs =
+   run (\f -> run (\g -> run (\x -> [f x (g x)]) xs) gxs) fxs
+   where
+     run f [] = []
+     run f (x:xs) = f x ++ run f xs
 
 listFunctionTest :: Bool
 listFunctionTest =
@@ -457,7 +528,7 @@ newtype Predicate a
   = Predicate { runPredicate :: a -> Bool }
 
 instance Contravariant Predicate where
-  contramap = undefined
+  contramap f (Predicate p) = Predicate $ p . f
 
 predicateTest :: Bool
 predicateTest =
@@ -471,7 +542,7 @@ newtype Const a b
   = Const { runConst :: a }
 
 instance Contravariant (Const a) where
-  contramap = undefined
+  contramap _ (Const c) = Const c
 
 -- # 8.3
 
@@ -479,7 +550,7 @@ newtype Compare a
   = Compare { runCompare :: a -> a -> Ordering }
 
 instance Contravariant Compare where
-  contramap = undefined
+  contramap f (Compare g) = Compare $ \a b -> g (f a) (f b)
 
 compareTest :: Bool
 compareTest =

@@ -40,23 +40,24 @@ newtype Reader r a = Reader { runReader :: r -> a }
 -- | __Задача #9.1.2__: реализуйте функции-помощники @ask@, @local@.
 
 ask :: Reader r r
-ask = undefined
+ask = Reader id
 
 local
   :: (r -> r)
   -> Reader r a
   -> Reader r a
-local = undefined
+local f (Reader h) = Reader $ h . f
 
 instance Functor (Reader r) where
-  fmap = undefined
+  fmap f (Reader g) = Reader $ f . g
 
 instance Applicative (Reader r) where
-  pure  = undefined
-  (<*>) = undefined
+  pure x    = Reader $ const x
+  Reader f <*> Reader g = Reader $ f <*> g
 
 instance Monad (Reader r) where
-  (>>=)  = undefined
+  Reader f >>= g =
+    Reader $ \x -> runReader (g (f x)) x
 
 -- | __#9.2 Writer__
 
@@ -84,29 +85,34 @@ tell
   :: Monoid w
   => w
   -> Writer w ()
-tell = undefined
+tell w = Writer ((), w)
 
 listen
   :: Monoid w
   => Writer w a
   -> Writer w (w, a)
-listen = undefined
+listen (Writer (a,w)) =
+  Writer ((w, a), w)
 
 pass
   :: Monoid w
   => Writer w (a, w -> w)
   -> Writer w a
-pass = undefined
+pass (Writer ((a, f), w)) =
+  Writer (a, f w)
 
 instance Functor (Writer w) where
-  fmap = undefined
+  -- fmap :: (a -> b) -> Writer w a -> Writer w b
+  fmap f (Writer (a,w)) = Writer (f a, w)
 
 instance Monoid w => Applicative (Writer w) where
-  pure  = undefined
-  (<*>) = undefined
+  pure x = Writer (x, mempty)
+  Writer (f, w1) <*> Writer (x, w2) = Writer (f x, w1 <> w2)
 
 instance Monoid w => Monad (Writer w) where
-  (>>=)  = undefined
+  Writer (a, w) >>= f = Writer (fst unWriter, w <> snd unWriter)
+    where
+      unWriter = runWriter (f a)
 
 
 -- | __#9.3 State__
@@ -129,21 +135,31 @@ instance Monoid w => Monad (Writer w) where
 
 -- | __Задача #9.3.2__: реализуйте функции-помощники @get@, @put@.
 
-get :: State s s
-get = undefined
-
-put :: s -> State s ()
-put = undefined
-
 newtype State s a
   = State { runState :: s -> (a, s) }
 
+get :: State s s
+get = State $ \x -> (x,x)
+
+put :: s -> State s ()
+put s = State $ const ((), s)
+
 instance Functor (State s) where
-  fmap = undefined
+  -- fmap :: (a -> b) -> State s a -> State s b
+  fmap f (State h) =
+    State $ \x -> (f . fst $ h x, snd . h $ x)
 
 instance Applicative (State s) where
-  pure  = undefined
-  (<*>) = undefined
+ -- pure :: a -> State s a
+  pure x = State $ \y -> (x, y)
+ -- (<*>) :: State s (a -> b) -> State s a -> State s b
+  State fs <*> State gs =
+    State $ \s ->
+      let (fun, s1) = fs s
+          (res, s2) = gs s1
+      in (fun res, s2)
 
 instance Monad (State s) where
-  (>>=)  = undefined
+  -- (>>=) :: State s a -> (a -> State s b) -> State s b
+  State f >>= g = State $
+    \x -> runState (g $ fst $ f x) (snd $ f x)
