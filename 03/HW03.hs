@@ -46,7 +46,7 @@ instance Applicative PrsE where
 instanceTest :: Bool
 instanceTest =
   and [ runPrsE ((,) <$> anyE <* charE 'B' <*> anyE) "ABCDE" == Right (('A','C'),"DE")
-      , runPrsE (digitToInt <$> anyE) "BCD" == Right (5, "CD")
+      , runPrsE (digitToInt <$> anyE) "BCD" == Right (11, "CD")
       , runPrsE (anyE *> anyE) "ABCDE" == Right ('B', "CDE")
       ]
 
