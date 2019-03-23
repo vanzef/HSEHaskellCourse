@@ -43,6 +43,12 @@ instance Applicative PrsE where
   pure  = undefined
   (<*>) = undefined
 
+instance Alternative PrsE where
+  -- | The identity of '<|>'
+  empty = undefined
+  -- | An associative binary operation
+  (<|>) = undefined
+
 instanceTest :: Bool
 instanceTest =
   and [ runPrsE ((,) <$> anyE <* charE 'B' <*> anyE) "ABCDE" == Right (('A','C'),"DE")
